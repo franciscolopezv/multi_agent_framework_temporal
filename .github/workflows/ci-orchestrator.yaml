@@ -13,6 +13,7 @@ permissions:
 
 env:
   IMAGE_NAME: multiagent-orchestrator
+  ACR_NAME: ${{ secrets.AZURE_ACR_NAME }}
 
 jobs:
   build-and-push:
@@ -30,14 +31,10 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Set ACR login server
+        run: echo "ACR_LOGIN_SERVER=${{ env.ACR_NAME }}.azurecr.io" >> $GITHUB_ENV
+        
+      - name: Docker build and push
         run: |
-          echo "ACR_LOGIN_SERVER=$(az acr show --name acrtemporal${{ secrets.AZURE_RANDOM_SUFFIX }} --query loginServer -o tsv)" >> $GITHUB_ENV
-
-      - name: Docker build
-        run: |
-          docker build -t $ACR_LOGIN_SERVER/$IMAGE_NAME:latest -f orchestrator/Dockerfile .
-
-      - name: Docker push
-        run: |
-          az acr login --name acrtemporal${{ secrets.AZURE_RANDOM_SUFFIX }}
-          docker push $ACR_LOGIN_SERVER/$IMAGE_NAME:latest
+            docker build -t $ACR_LOGIN_SERVER/$IMAGE_NAME:latest -f orchestrator/Dockerfile .
+            az acr login --name $ACR_NAME
+            docker push $ACR_LOGIN_SERVER/$IMAGE_NAME:latest
