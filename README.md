@@ -14,9 +14,6 @@ The documentation has been organized into the following separate guides:
 | [ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Technical architecture, components, and diagram |
 | [DEVELOPERS.md](./docs/DEVELOPERS.md) | Developer onboarding, CLI, and codebase structure |
 
-Download the full documentation bundle here:  
-📦 [docs_bundle.zip](./docs_bundle.zip)
-
 ---
 
 ## 🐳 Local Development
