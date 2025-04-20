@@ -7,8 +7,12 @@ on:
       - 'orchestrator/**'
       - '.github/workflows/ci-orchestrator.yaml'
 
+permissions:
+  id-token: write  # ✅ required for OIDC login
+  contents: read   # ✅ optional, but needed for actions/checkout
+
 env:
-  IMAGE_NAME: temporal-orchestrator
+  IMAGE_NAME: multiagent-orchestrator
 
 jobs:
   build-and-push:
