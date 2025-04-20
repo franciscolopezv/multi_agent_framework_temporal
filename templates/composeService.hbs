@@ -1,0 +1,13 @@
+{{agentId}}:
+  build:
+    context: ./agents/{{agentId}}
+    dockerfile: Dockerfile
+  environment:
+    - MONGODB_URI=mongodb://mongo:27017
+    - OPENAI_API_KEY=${OPENAI_API_KEY}
+    - TEMPORAL_ADDRESS=temporal:7233
+  networks:
+    - temporal-network
+  depends_on:
+    - mongo
+    - temporal

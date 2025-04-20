@@ -1,0 +1,51 @@
+import { getMongoDb } from './mongoClient';
+
+export interface AgentRegistration {
+  agentId: string;
+  taskQueue: string;
+  activities: string[];
+  metadata?: Record<string, any>;
+}
+
+export async function registerAgent(agent: AgentRegistration) {
+  const db = await getMongoDb();
+  const now = new Date().toISOString();
+
+  await db.collection('agents').updateOne(
+    { agentId: agent.agentId },
+    {
+      $set: {
+        ...agent,
+        status: 'online',
+        lastHeartbeat: now
+      }
+    },
+    { upsert: true }
+  );
+
+  console.log(`✅ Registered agent: ${agent.agentId}`);
+}
+
+export async function updateHeartbeat(agentId: string) {
+    const db = await getMongoDb();
+    const now = new Date().toISOString();
+  
+    await db.collection('agents').updateOne(
+      { agentId },
+      { $set: { lastHeartbeat: now } }
+    );
+  }
+  
+export async function getAgentInfo(agentId: string) {
+
+    console.log(agentId)
+
+    const db = await getMongoDb();
+    const agent = await db.collection('agents').findOne({ agentId });
+  
+    if (!agent) {
+      throw new Error(`Agent not found in registry: ${agentId}`);
+    }
+  
+    return agent;
+}

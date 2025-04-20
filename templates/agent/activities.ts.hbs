@@ -1,0 +1,49 @@
+import handlebars from 'handlebars';
+import OpenAI from 'openai';
+import type { ChatCompletionMessageParam } from 'openai/resources/chat';
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+export async function {{activityName}}(input: any) {
+  const agentId = '{{agentId}}';
+
+  {{#if endpoint}}
+  // External override (if provided)
+  const res = await fetch('{{endpoint}}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      {{#if headers}}
+      {{#each headers}}
+      '{{@key}}': '{{this}}',
+      {{/each}}
+      {{/if}}
+    },
+    body: JSON.stringify(input)
+  });
+
+  if (!res.ok) throw new Error(`External agent call failed: ${res.status}`);
+  return await res.json();
+  {{else}}
+  // 🧠 Compile user-defined prompt template using Handlebars
+  const promptTemplate = handlebars.compile(`{{prompt}}`);
+  const renderedPrompt = promptTemplate({ input });
+
+  const messages: ChatCompletionMessageParam[] = [
+    { role: 'system', content: '{{systemRole}}' },
+    { role: 'user', content: renderedPrompt }
+  ];
+
+  const response = await openai.chat.completions.create({
+    model: '{{llm}}',
+    messages,
+    temperature: 0.7
+  });
+
+  const result = response.choices[0].message.content;
+
+  return {
+    result: result?.trim()
+  };
+  {{/if}}
+}

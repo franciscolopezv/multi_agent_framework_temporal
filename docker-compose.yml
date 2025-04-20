@@ -1,0 +1,159 @@
+version: "3.5"
+services:
+  postgresql:
+    container_name: temporal-postgresql
+    environment:
+      POSTGRES_PASSWORD: temporal
+      POSTGRES_USER: temporal
+    image: postgres:${POSTGRESQL_VERSION}
+    networks:
+      - temporal-network
+    ports:
+      - 5432:5432
+    volumes:
+      - /var/lib/postgresql/data
+  temporal:
+    container_name: temporal
+    depends_on:
+      - postgresql
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal
+      - POSTGRES_SEEDS=postgresql
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
+    image: temporalio/auto-setup:${TEMPORAL_VERSION}
+    networks:
+      - temporal-network
+    ports:
+      - 7233:7233
+    volumes:
+      - ./dynamicconfig:/etc/temporal/config/dynamicconfig
+  temporal-admin-tools:
+    container_name: temporal-admin-tools
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
+    image: temporalio/admin-tools:${TEMPORAL_ADMINTOOLS_VERSION}
+    networks:
+      - temporal-network
+    stdin_open: true
+    tty: true
+  temporal-ui:
+    container_name: temporal-ui
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    image: temporalio/ui:${TEMPORAL_UI_VERSION}
+    networks:
+      - temporal-network
+    ports:
+      - 8080:8080
+  mongo:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./docker/mongo-init:/docker-entrypoint-initdb.d
+    environment:
+      - MONGO_INITDB_DATABASE=flow-orchestration
+    networks:
+      - temporal-network
+  orchestrator:
+    build:
+      context: ./orchestrator
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - MONGODB_URI=mongodb://mongo:27017
+    networks:
+      - temporal-network
+    depends_on:
+      - temporal
+      - mongo
+  customer_profiler:
+    build:
+      context: ./agents/customer_profiler
+      dockerfile: Dockerfile
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - TEMPORAL_ADDRESS=temporal:7233
+    networks:
+      - temporal-network
+    depends_on:
+      - mongo
+      - temporal
+  product_selector:
+    build:
+      context: ./agents/product_selector
+      dockerfile: Dockerfile
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - TEMPORAL_ADDRESS=temporal:7233
+    networks:
+      - temporal-network
+    depends_on:
+      - mongo
+      - temporal
+  finance_analyzer:
+    build:
+      context: ./agents/finance_analyzer
+      dockerfile: Dockerfile
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - TEMPORAL_ADDRESS=temporal:7233
+    networks:
+      - temporal-network
+    depends_on:
+      - mongo
+      - temporal
+  regulatory_checker:
+    build:
+      context: ./agents/regulatory_checker
+      dockerfile: Dockerfile
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - TEMPORAL_ADDRESS=temporal:7233
+    networks:
+      - temporal-network
+    depends_on:
+      - mongo
+      - temporal
+  manager_approval:
+    build:
+      context: ./agents/manager_approval
+      dockerfile: Dockerfile
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - TEMPORAL_ADDRESS=temporal:7233
+    networks:
+      - temporal-network
+    depends_on:
+      - mongo
+      - temporal
+  sales_summary:
+    build:
+      context: ./agents/sales_summary
+      dockerfile: Dockerfile
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - TEMPORAL_ADDRESS=temporal:7233
+    networks:
+      - temporal-network
+    depends_on:
+      - mongo
+      - temporal
+networks:
+  temporal-network:
+    driver: bridge
+    name: temporal-network

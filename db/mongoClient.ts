@@ -1,0 +1,17 @@
+import { Db, MongoClient } from 'mongodb';
+
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017';
+const DB_NAME = 'flow-orchestration';
+
+const client = new MongoClient(MONGO_URI);
+
+let dbInstance: Db | null = null;
+
+export async function getMongoDb(): Promise<Db> {
+  if (!dbInstance) {
+    await client.connect();
+    dbInstance = client.db(DB_NAME);
+  }
+
+  return dbInstance;
+}

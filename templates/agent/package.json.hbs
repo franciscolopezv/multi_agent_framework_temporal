@@ -1,0 +1,20 @@
+{
+  "name": "agent-{{agentId}}",
+  "version": "1.0.0",
+  "main": "worker.ts",
+  "scripts": {
+    "start": "npx ts-node worker.ts"
+  },
+  "dependencies": {
+    "@temporalio/worker": "^1.0.0",
+    "ts-node": "^10.0.0",
+    "openai": "^4.0.0",
+    "dotenv": "^16.0.0",
+    "mongodb": "^6.15.0",
+    "handlebars": "^4.7.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.1"
+  }
+}
