@@ -8,8 +8,8 @@ async function run() {
     address: temporalAddress,
     tls: {
       clientCertPair: {
-        crt: fs.readFileSync('/etc/ssl/client/client.crt'),
-        key: fs.readFileSync('/etc/ssl/client/client.key'),
+        crt: fs.readFileSync('/etc/certs/client.crt'),
+        key: fs.readFileSync('/etc/certs/client.key'),
       }
     },
   });
